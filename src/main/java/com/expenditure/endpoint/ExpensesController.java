@@ -2,8 +2,10 @@ package com.expenditure.endpoint;
 
 import com.expenditure.domain.Expense;
 import com.expenditure.domain.exception.CustonTypeError;
+import com.expenditure.domain.exception.ResourceNotFoundException;
 import com.expenditure.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,9 +26,7 @@ public class ExpensesController {
 
     @GetMapping("/expenses/{id}")
     public ResponseEntity<?> findById(@PathVariable("id") Long id) {
-        if (expenseRepository.findById(id).isEmpty()) {
-            return new ResponseEntity<>(new CustonTypeError("NOT FOUND"), HttpStatus.NOT_FOUND);
-        }
+        verifyExpenses(id);
         return new ResponseEntity<>(expenseRepository.findById(id), HttpStatus.OK);
     }
 
@@ -42,10 +42,20 @@ public class ExpensesController {
         return new ResponseEntity<>(expenseRepository.save(expense), HttpStatus.OK);
     }
 
+    @GetMapping("/expenses/find/{description}")
+    public ResponseEntity<?> findByDescription(@PathVariable("description") String description) {
+        return new ResponseEntity<>(expenseRepository.findByDescriptionIgnoreCaseContaining(description), HttpStatus.OK);
+    }
+
     @DeleteMapping("/expenses/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        Expense expense = expenseRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        expenseRepository.delete(expense);
+        verifyExpenses(id);
+        expenseRepository.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private void verifyExpenses(Long id) {
+        if (expenseRepository.findById(id).isEmpty())
+            throw new ResourceNotFoundException("No match records found for id : " + id);
     }
 }
