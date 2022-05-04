@@ -1,5 +1,7 @@
 package com.expenditure.domain.enuns;
 
+import javax.persistence.Enumerated;
+
 public enum Category {
     FOOD("food"),
     HOUSING("housing"),
