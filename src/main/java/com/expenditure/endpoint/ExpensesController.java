@@ -1,15 +1,15 @@
 package com.expenditure.endpoint;
 
 import com.expenditure.domain.Expense;
-import com.expenditure.domain.exception.CustonTypeError;
 import com.expenditure.domain.exception.ResourceNotFoundException;
 import com.expenditure.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 
@@ -48,7 +48,9 @@ public class ExpensesController {
     }
 
     @DeleteMapping("/expenses/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> delete(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        System.out.println(userDetails);
         verifyExpenses(id);
         expenseRepository.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
